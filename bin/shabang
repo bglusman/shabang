@@ -4,10 +4,9 @@ require 'optparse'
 require 'fileutils'
 require 'ostruct'
 require 'pp'
-require 'pry'
 
 class Shabang
-  VERSION = '0.1.0'
+  VERSION = '0.1.1'
   LANGS = %w[python perl node ruby bash sbcl runhaskell]
 
   def self.parse(args)

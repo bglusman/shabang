@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+require 'ostruct'
+require 'pp'
+require 'pry'
+
+class Shabang
+  VERSION = '0.1.0'
+  LANGS = %w[python perl node ruby bash sbcl runhaskell]
+
+  def self.parse(args)
+    options = OpenStruct.new
+    options.language = 'ruby'
+    options.path   = 'bin/'
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: shabang [options] (or shebang [options])"
+
+      opts.separator ""
+      opts.separator "Specific options:"
+
+      lang_list = LANGS.join(',')
+      opts.on("--lang LANGUAGE", LANGS, "Select language",
+              "  (#{lang_list})") do |language|
+        options.language = language
+      end
+
+      # Boolean switch.
+      opts.on("-p", "--python", "Generate python shebang") do
+        options.language = 'python'
+      end
+
+      opts.on("-P", "--perl", "Generate perl shebang") do
+        options.language = 'perl'
+      end
+
+      opts.on("-j", "--node", "--javascript", "Generate node.js shebang") do
+        options.language = 'node'
+      end
+
+      opts.on("-h", "--haskell", "Generate Haskell shebang") do
+        options.language = 'runhaskell'
+      end
+
+      # opts.on("-f", "--filename", "specify filename here instead of as default argument")
+
+      opts.on("-n", "--nobin", "Skip creating/putting in bin directory") do
+        options.path = nil
+      end
+
+      opts.on('--path PATH', 'Path to place bin instead of ./bin/') do |path|
+         options.path = path
+      end
+
+      opts.separator ""
+      opts.separator "Common options:"
+
+      # No argument, shows at tail.  This will print an options summary.
+      # Try it and see!
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+
+      # Another typical switch to print the version.
+      opts.on_tail("--version", "Show version") do
+        puts VERSION
+        exit
+      end
+
+    end
+
+    opt_parser.parse!(args)
+    options
+  end
+
+end
+filename = ARGV.shift
+options = Shabang.parse(ARGV)
+FileUtils.mkdir_p(options.path[0..-1]) if options.path
+options.path += '/' unless options.path[-1] == '/'
+File.open(options.path.to_s + filename, 'wb', 0755) do |f|
+  f.puts "#!/usr/bin/env #{options.language}"
+end
+
